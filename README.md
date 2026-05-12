@@ -119,14 +119,12 @@ pip install reportlab
 python generate_readme.py
 ```
 
-## Team module map (example)
+## Team module map
 
 | Member | Area | Files |
 |--------|------|--------|
-| Member 1 | Database & reports | `sql/schema.sql`, `sql/seed.sql`, `modules/reports.py` |
-| Member 2 | Flight search | `modules/flight_search.py` |
-| Member 3 | Booking / capacity | `modules/booking.py` (seat availability) |
-| Member 4 | Passenger queries | `modules/booking.py` (passenger itinerary) |
-| Member 5 | CLI & docs | `cli.py`, `modules/db.py`, README / submission docs |
-
-Replace member labels with your team’s names as required by your course.
+| Deethya Janjanam | Database & reports | `sql/schema.sql`, `sql/seed.sql`, `modules/reports.py` |
+| Ritikha Ashok | Flight search | `modules/flight_search.py` |
+| Salamot Itunuoluwa Fakoya | Booking / capacity | `modules/booking.py` (seat availability) |
+| Ananya Ramanan | Passenger queries | `modules/booking.py` (passenger itinerary) |
+| Kavyadharshini Seenuvasan | CLI & docs | `cli.py`, `modules/db.py`, README / submission docs |
