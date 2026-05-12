@@ -1,5 +1,5 @@
 """
-generate_readme.py — generates readme.pdf for submission
+generate_readme.py - generates readme.pdf for submission
 CS-4347 Airport Management System
 """
 
@@ -43,36 +43,29 @@ def hr():
 
 story = [
     H("CS-4347 Airport Management System"),
-    H("Milestone 2 — Build & Run Instructions", level=2),
+    H("Milestone 3 - Build & Run Instructions", level=2),
     hr(),
     sp(),
 
     # Team + overview
     H("Project Overview", level=2),
-    P("This is the Milestone 2 backend implementation for the CS-4347 Airport "
-      "Management System. It provides a command-line interface backed by a SQLite "
-      "database. All required features (flight search, trip planning, seat "
-      "availability, passenger itinerary, and aircraft utilization report) are "
-      "implemented in Python 3."),
+    P("This is the CS-4347 Airport Management System for Milestone 3. It includes a "
+      "SQLite database, a Python CLI, optional loading of professor CSV data from "
+      "<i>./data</i>, and a Tkinter GUI (<font name=\"Courier\">gui_app.py</font>) "
+      "covering flight search (with date and connection rules), utilization reports, "
+      "seat availability, booking, and passenger itinerary lookup."),
     sp(),
 
-<<<<<<< HEAD
-=======
     H("3) Infrastructure Reports", level=2),
-    P("<b>Aircraft Utilization Report.</b> For a given time period, the system lists "
-      "every airplane (by <i>registration number</i> and <i>aircraft type</i>) along "
-      "with the total number of flights it was assigned to. This helps maintenance "
-      "planners schedule inspections based on usage cycles. In the REPL, run "
-      "<font name=\"Courier\">report(&lt;start_date&gt;, &lt;end_date&gt;)</font> "
-      "with dates in YYYY-MM-DD format; implementation: <font name=\"Courier\">"
-      "modules/reports.py</font> (<i>aircraft_utilization_report</i>)."),
+    P("<b>Aircraft Utilization Report.</b> For a given time period (and optional "
+      "aircraft registration), the system lists airplanes with type and total flights "
+      "assigned in that window."),
     sp(),
 
->>>>>>> 5beb8ff18c4b0f299bb7d38fafd1ff805fbff25a
     # Requirements
     H("Requirements", level=2),
     P("<b>Language:</b> Python 3.10 or higher"),
-    P("<b>Database:</b> SQLite 3 (bundled with Python — no installation needed)"),
+    P("<b>Database:</b> SQLite 3 (bundled with Python - no installation needed)"),
     P("<b>Third-party dependencies:</b> None (uses only the Python standard library)"),
     sp(),
 
@@ -80,16 +73,19 @@ story = [
     H("Project Structure", level=2),
     C("""\
 airport_project/
-  cli.py                   ← Entry point / REPL
+  cli.py                   <- Entry point / REPL
+  gui_app.py               <- Milestone 3 GUI (tkinter)
   sql/
-    schema.sql             ← DDL — creates all tables
-    seed.sql               ← Sample data for testing
+    schema.sql             <- DDL
+    seed.sql               <- Small sample data
+  data/                    <- Optional professor CSV bundle
   modules/
-    db.py                  ← DB connection helper
-    flight_search.py       ← flight() and trip() functions
-    booking.py             ← seat_availability() and passenger_itinerary()
-    reports.py             ← aircraft_utilization_report()
-  readme.pdf               ← This file"""),
+    db.py                  <- DB connection + init (CSV or seed)
+    csv_loader.py          <- Load professor CSVs
+    flight_search.py       <- flight() and trip()
+    booking.py             <- seat_availability(), book_seat(), passenger_itinerary()
+    reports.py             <- aircraft_utilization_report()
+  readme.pdf               <- This file"""),
     sp(),
 
     # Setup
@@ -97,23 +93,26 @@ airport_project/
     P("1. Unzip the submission archive and <b>cd</b> into the project folder:"),
     C("cd airport_project"),
     sp(4),
-    P("2. Initialize the database (creates <i>airport.db</i> in the current directory):"),
+    P("2. Initialize the database from the project root:"),
     C("python cli.py --init"),
     sp(4),
-    P("3. (Optional) Also load sample/test data:"),
+    P("3. Or use bundled SQL sample data only:"),
     C("python cli.py --init --seed"),
+    sp(4),
+    P("4. Launch the GUI:"),
+    C("python gui_app.py"),
     sp(),
 
     # Running
     H("Running the Application", level=2),
-    P("<b>Interactive REPL (recommended):</b>"),
+    P("<b>Interactive REPL:</b>"),
     C("python cli.py"),
     sp(4),
-    P("<b>Run a single command and exit:</b>"),
-    C('python cli.py --cmd \'flight("AA3478")\''),
+    P("<b>Run a single command:</b>"),
+    C('python cli.py --cmd \'trip("DFW", "JFK", "2025-10-04")\''),
     sp(4),
-    P("<b>Initialize + open REPL in one step:</b>"),
-    C("python cli.py --init --seed --repl"),
+    P("<b>GUI:</b>"),
+    C("python gui_app.py"),
     sp(),
 
     # Commands
@@ -122,15 +121,11 @@ airport_project/
     Table(
         [
             ["Command", "Description"],
-            ['flight(<number>)',             "Show all legs and fares for a flight number"],
-            ['trip(<origin>, <dest>)',        "Direct + 1-stop itineraries between airports"],
+            ['flight(<number>[, <date>])',      "Schedule template or dated instance"],
+            ['trip(<o>, <d>, <date>)',          "Direct + 1-stop on date (>=1h layover)"],
             ['availability(<flight>, <date>)',"Seat capacity vs. confirmed bookings"],
-            ['itinerary(<name>)',             "All bookings for a passenger (partial name OK)"],
-<<<<<<< HEAD
-            ['report(<start>, <end>)',        "Aircraft utilization report for a date range"],
-=======
-            ['report(<start>, <end>)',        "(3) Aircraft utilization: reg., type, flight count in range"],
->>>>>>> 5beb8ff18c4b0f299bb7d38fafd1ff805fbff25a
+            ['itinerary(<name_or_id>)',        "All bookings for a passenger"],
+            ['report(<start>, <end>[, reg])',  "Aircraft utilization (optional tail number)"],
             ['help',                          "Print the command reference"],
             ['exit / quit',                  "Exit the REPL"],
         ],

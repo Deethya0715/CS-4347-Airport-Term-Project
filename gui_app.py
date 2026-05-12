@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-gui_app.py — Tkinter GUI for CS-4347 Airport Management System (Milestone 3)
+gui_app.py - Tkinter GUI for CS-4347 Airport Management System (Milestone 3)
 """
 
 from __future__ import annotations
@@ -176,7 +176,7 @@ class AirportApp(tk.Tk):
             _text_append(self.fl_out, f"No flight '{fn}'")
             return
         f = data["flight"]
-        _text_append(self.fl_out, f"{f['FLIGHT_Number']} — {f['Airline']} — {f['Weekdays']}")
+        _text_append(self.fl_out, f"{f['FLIGHT_Number']} - {f['Airline']} - {f['Weekdays']}")
         for leg in data["legs"]:
             _text_append(
                 self.fl_out,
@@ -201,7 +201,7 @@ class AirportApp(tk.Tk):
         if not rows:
             _text_append(self.fl_out, f"No legs scheduled for {fn} on {d}")
             return
-        _text_append(self.fl_out, f"{fn} on {d} — {rows[0]['Airline']}")
+        _text_append(self.fl_out, f"{fn} on {d} - {rows[0]['Airline']}")
         for r in rows:
             _text_append(
                 self.fl_out,
@@ -368,7 +368,7 @@ class AirportApp(tk.Tk):
                 cur = r["Customer_name"]
                 _text_append(
                     self.it_out,
-                    f"\n{cur}  ID:{r['Customer_id'] or '—'}  Ph:{r['Cphone'] or '—'}",
+                    f"\n{cur}  ID:{r['Customer_id'] or '-'}  Ph:{r['Cphone'] or '-'}",
                 )
             _text_append(
                 self.it_out,

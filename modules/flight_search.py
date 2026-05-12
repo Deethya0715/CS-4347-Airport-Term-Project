@@ -1,11 +1,10 @@
 """
-flight_search.py — Flight Search Module
-<<<<<<< HEAD
+flight_search.py - Flight Search Module
 CS-4347 Airport Management System (Milestone 3)
 
 Implements:
-  flight(flight_number[, date])     → template and/or dated instance details
-  trip(origin, destination, date)   → direct + 1-stop on a date (≥1h layover)
+  flight(flight_number[, date])     - schedule template and/or dated instance
+  trip(origin, destination, date)   - direct + 1-stop on a date (>=1h layover)
 """
 
 from __future__ import annotations
@@ -16,10 +15,7 @@ from modules.db import get_connection
 
 
 def resolve_airport_code(identifier: str) -> list[str]:
-    """
-    Given a 3-letter code or a city name, return matching Airport_code(s).
-    Case-insensitive.
-    """
+    """Resolve a 3-letter code or city substring to Airport_code list."""
     conn = get_connection()
     identifier = identifier.strip()
     rows = conn.execute(
@@ -30,57 +26,22 @@ def resolve_airport_code(identifier: str) -> list[str]:
         rows = conn.execute(
             "SELECT Airport_code FROM AIRPORT WHERE UPPER(City) LIKE UPPER(?)",
             (f"%{identifier}%",),
-=======
-CS-4347 Airport Management System
-
-Implements:
-  flight(flight_number)          → details of a single flight
-  trip(origin, destination)      → direct + 1-stop itineraries
-"""
-
-from modules.db import get_connection
-
-
-# ──────────────────────────────────────────────────────────────
-# Helper: resolve airport code from either a code or city name
-# ──────────────────────────────────────────────────────────────
-
-def resolve_airport_code(identifier: str) -> list[str]:
-    """
-    Given a 3-letter code or a city name, return matching Airport_code(s).
-    Case-insensitive. Returns a list (a city might have multiple airports).
-    """
-    conn = get_connection()
-    identifier = identifier.strip()
-    # Try exact code match first
-    rows = conn.execute(
-        "SELECT Airport_code FROM AIRPORT WHERE UPPER(Airport_code) = UPPER(?)",
-        (identifier,)
-    ).fetchall()
-    if not rows:
-        # Fallback: city name substring match
-        rows = conn.execute(
-            "SELECT Airport_code FROM AIRPORT WHERE UPPER(City) LIKE UPPER(?)",
-            (f"%{identifier}%",)
->>>>>>> 5beb8ff18c4b0f299bb7d38fafd1ff805fbff25a
         ).fetchall()
     conn.close()
     return [r["Airport_code"] for r in rows]
 
 
-<<<<<<< HEAD
-# ── Layover: minutes between HH:MM times (same calendar day) ────────────────
-
-
 def _layover_minutes(arr_hhmm: str, dep_hhmm: str) -> int:
+    """Minutes between scheduled times (handles HH:MM or HH:MM:SS)."""
+
     def to_min(t: str) -> int:
-        parts = (t or "00:00").split(":")
-        return int(parts[0]) * 60 + int(parts[1])
+        t = (t or "00:00").strip()
+        parts = t.split(":")
+        h = int(parts[0]) if parts and parts[0] else 0
+        m = int(parts[1]) if len(parts) > 1 and parts[1] else 0
+        return h * 60 + m
 
     return to_min(dep_hhmm) - to_min(arr_hhmm)
-
-
-# ── Flight template (no specific date) ──────────────────────────────────────
 
 
 def fetch_flight_template(flight_number: str) -> dict[str, Any] | None:
@@ -88,41 +49,11 @@ def fetch_flight_template(flight_number: str) -> dict[str, Any] | None:
     conn = get_connection()
     fn = flight_number.strip().upper()
     f_row = conn.execute(
-        "SELECT * FROM FLIGHT WHERE UPPER(FLIGHT_Number) = ?", (fn,)
+        "SELECT * FROM FLIGHT WHERE UPPER(TRIM(FLIGHT_Number)) = ?", (fn,)
     ).fetchone()
     if not f_row:
         conn.close()
         return None
-=======
-# ──────────────────────────────────────────────────────────────
-# flight(flight_number)
-# ──────────────────────────────────────────────────────────────
-
-def flight(flight_number: str) -> None:
-    """
-    Print details for every leg of the given flight number.
-    Usage: flight("AA3478")
-    """
-    conn = get_connection()
-    fn = flight_number.strip().upper()
-
-    # Basic flight info
-    f_row = conn.execute(
-        "SELECT * FROM FLIGHT WHERE UPPER(FLIGHT_Number) = ?", (fn,)
-    ).fetchone()
-
-    if not f_row:
-        print(f"[flight] No flight found with number '{flight_number}'")
-        conn.close()
-        return
-
-    print(f"\n{'='*55}")
-    print(f"  Flight:  {f_row['FLIGHT_Number']}  ({f_row['Airline']})")
-    print(f"  Operates: {f_row['Weekdays']}")
-    print(f"{'='*55}")
-
-    # Legs
->>>>>>> 5beb8ff18c4b0f299bb7d38fafd1ff805fbff25a
     legs = conn.execute(
         """
         SELECT fl.Leg_no,
@@ -132,14 +63,13 @@ def flight(flight_number: str) -> None:
         FROM   FLIGHT_LEG fl
         JOIN   AIRPORT da ON da.Airport_code = fl.Departure_code
         JOIN   AIRPORT aa ON aa.Airport_code = fl.Arrival_code
-        WHERE  UPPER(fl.FLIGHT_LEG_Number) = ?
+        WHERE  UPPER(TRIM(fl.FLIGHT_LEG_Number)) = ?
         ORDER  BY fl.Leg_no
         """,
-<<<<<<< HEAD
         (fn,),
     ).fetchall()
     fares = conn.execute(
-        "SELECT Code, Amount, Restriction FROM FARE WHERE UPPER(Fare_Number) = ?",
+        "SELECT Code, Amount, Restriction FROM FARE WHERE UPPER(TRIM(Fare_Number)) = ?",
         (fn,),
     ).fetchall()
     conn.close()
@@ -150,11 +80,38 @@ def flight(flight_number: str) -> None:
     }
 
 
+def fetch_flight_instance_legs(flight_number: str, date: str) -> list[dict[str, Any]]:
+    """Legs for a flight number on a specific date (from LEG_INSTANCE)."""
+    conn = get_connection()
+    fn = flight_number.strip().upper()
+    rows = conn.execute(
+        """
+        SELECT  f.Airline,
+                li.LEG_INSTANCE_Number AS flight_no,
+                li.Leg_no,
+                li.LEG_INSTANCE_Date AS flight_date,
+                fl.Scheduled_dep_time,
+                fl.Scheduled_arr_time,
+                fl.Departure_code,
+                fl.Arrival_code,
+                li.Airplane_id
+        FROM    LEG_INSTANCE li
+        JOIN    FLIGHT f ON UPPER(TRIM(f.FLIGHT_Number)) = UPPER(TRIM(li.LEG_INSTANCE_Number))
+        JOIN    FLIGHT_LEG fl
+                ON  UPPER(TRIM(fl.FLIGHT_LEG_Number)) = UPPER(TRIM(li.LEG_INSTANCE_Number))
+                AND fl.Leg_no            = li.Leg_no
+        WHERE   UPPER(TRIM(li.LEG_INSTANCE_Number)) = ?
+          AND   li.LEG_INSTANCE_Date          = ?
+        ORDER   BY li.Leg_no
+        """,
+        (fn, date),
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
 def flight(flight_number: str, date: str | None = None) -> None:
-    """
-    Print flight details. If `date` is set, show that day's leg instances
-    (airline, flight number, date, times). Otherwise print the weekly template.
-    """
+    """Print weekly template, or dated instance if `date` is given."""
     if date:
         rows = fetch_flight_instance_legs(flight_number, date)
         fn = flight_number.strip().upper()
@@ -166,8 +123,8 @@ def flight(flight_number: str, date: str | None = None) -> None:
         print(f"{'='*55}")
         for r in rows:
             print(
-                f"  Leg {r['Leg_no']}: {r['Departure_code']} → {r['Arrival_code']}  "
-                f"{r['Scheduled_dep_time']} → {r['Scheduled_arr_time']}  "
+                f"  Leg {r['Leg_no']}: {r['Departure_code']} -> {r['Arrival_code']}  "
+                f"{r['Scheduled_dep_time']} -> {r['Scheduled_arr_time']}  "
                 f"(aircraft {r['Airplane_id']})"
             )
         print()
@@ -187,7 +144,7 @@ def flight(flight_number: str, date: str | None = None) -> None:
     for leg in data["legs"]:
         print(
             f"  Leg {leg['Leg_no']:>2}: "
-            f"{leg['Departure_code']} ({leg['dep_city']}) {leg['Scheduled_dep_time']}  →  "
+            f"{leg['Departure_code']} ({leg['dep_city']}) {leg['Scheduled_dep_time']}  ->  "
             f"{leg['Arrival_code']} ({leg['arr_city']}) {leg['Scheduled_arr_time']}"
         )
     if data["fares"]:
@@ -196,39 +153,6 @@ def flight(flight_number: str, date: str | None = None) -> None:
             restriction = f"  [{fare['Restriction']}]" if fare["Restriction"] else ""
             print(f"    {fare['Code']:<8} ${fare['Amount']:>8.2f}{restriction}")
     print()
-
-
-def fetch_flight_instance_legs(flight_number: str, date: str) -> list[dict[str, Any]]:
-    """Legs for a flight number on a specific date (from LEG_INSTANCE)."""
-    conn = get_connection()
-    fn = flight_number.strip().upper()
-    rows = conn.execute(
-        """
-        SELECT  f.Airline,
-                li.LEG_INSTANCE_Number AS flight_no,
-                li.Leg_no,
-                li.LEG_INSTANCE_Date AS flight_date,
-                fl.Scheduled_dep_time,
-                fl.Scheduled_arr_time,
-                fl.Departure_code,
-                fl.Arrival_code,
-                li.Airplane_id
-        FROM    LEG_INSTANCE li
-        JOIN    FLIGHT f ON f.FLIGHT_Number = li.LEG_INSTANCE_Number
-        JOIN    FLIGHT_LEG fl
-                ON  fl.FLIGHT_LEG_Number = li.LEG_INSTANCE_Number
-                AND fl.Leg_no            = li.Leg_no
-        WHERE   UPPER(li.LEG_INSTANCE_Number) = ?
-          AND   li.LEG_INSTANCE_Date          = ?
-        ORDER   BY li.Leg_no
-        """,
-        (fn, date),
-    ).fetchall()
-    conn.close()
-    return [dict(r) for r in rows]
-
-
-# ── Trip search on a date (direct + one stop, ≥60 min connection) ───────────
 
 
 def fetch_direct_routes(
@@ -246,9 +170,9 @@ def fetch_direct_routes(
                 fl.Departure_code,
                 fl.Arrival_code
         FROM    FLIGHT_LEG fl
-        JOIN    FLIGHT f ON f.FLIGHT_Number = fl.FLIGHT_LEG_Number
+        JOIN    FLIGHT f ON UPPER(TRIM(f.FLIGHT_Number)) = UPPER(TRIM(fl.FLIGHT_LEG_Number))
         JOIN    LEG_INSTANCE li
-                ON  li.LEG_INSTANCE_Number = fl.FLIGHT_LEG_Number
+                ON  UPPER(TRIM(li.LEG_INSTANCE_Number)) = UPPER(TRIM(fl.FLIGHT_LEG_Number))
                 AND li.Leg_no              = fl.Leg_no
                 AND li.LEG_INSTANCE_Date   = ?
         WHERE   fl.Departure_code = ?
@@ -264,10 +188,7 @@ def fetch_direct_routes(
 def fetch_one_stop_routes(
     origin_code: str, dest_code: str, flight_date: str
 ) -> list[dict[str, Any]]:
-    """
-    Two-leg itineraries on the same calendar date with at least 60 minutes
-    between first leg arrival and second leg departure.
-    """
+    """Same-day two-leg itineraries with at least 60 minutes between legs."""
     conn = get_connection()
     raw = conn.execute(
         """
@@ -287,17 +208,17 @@ def fetch_one_stop_routes(
                 leg2.Scheduled_arr_time AS arr2,
                 leg2.Arrival_code       AS arr_code2
         FROM    FLIGHT_LEG leg1
-        JOIN    FLIGHT f1 ON f1.FLIGHT_Number = leg1.FLIGHT_LEG_Number
+        JOIN    FLIGHT f1 ON UPPER(TRIM(f1.FLIGHT_Number)) = UPPER(TRIM(leg1.FLIGHT_LEG_Number))
         JOIN    LEG_INSTANCE li1
-                ON  li1.LEG_INSTANCE_Number = leg1.FLIGHT_LEG_Number
+                ON  UPPER(TRIM(li1.LEG_INSTANCE_Number)) = UPPER(TRIM(leg1.FLIGHT_LEG_Number))
                 AND li1.Leg_no              = leg1.Leg_no
                 AND li1.LEG_INSTANCE_Date   = ?
         JOIN    FLIGHT_LEG leg2
                 ON  leg2.Departure_code = leg1.Arrival_code
                 AND leg2.Arrival_code   = ?
-        JOIN    FLIGHT f2 ON f2.FLIGHT_Number = leg2.FLIGHT_LEG_Number
+        JOIN    FLIGHT f2 ON UPPER(TRIM(f2.FLIGHT_Number)) = UPPER(TRIM(leg2.FLIGHT_LEG_Number))
         JOIN    LEG_INSTANCE li2
-                ON  li2.LEG_INSTANCE_Number = leg2.FLIGHT_LEG_Number
+                ON  UPPER(TRIM(li2.LEG_INSTANCE_Number)) = UPPER(TRIM(leg2.FLIGHT_LEG_Number))
                 AND li2.Leg_no              = leg2.Leg_no
                 AND li2.LEG_INSTANCE_Date   = li1.LEG_INSTANCE_Date
         JOIN    AIRPORT ca ON ca.Airport_code = leg1.Arrival_code
@@ -317,49 +238,7 @@ def fetch_one_stop_routes(
 
 
 def trip(origin: str, destination: str, flight_date: str) -> None:
-    """
-    Direct and one-stop itineraries on `flight_date` between two airports.
-    `origin` / `destination` may be codes or city names.
-=======
-        (fn,)
-    ).fetchall()
-
-    if not legs:
-        print("  (No legs defined for this flight)")
-    for leg in legs:
-        print(
-            f"  Leg {leg['Leg_no']:>2}: "
-            f"{leg['Departure_code']} ({leg['dep_city']}) {leg['Scheduled_dep_time']}  ->  "
-            f"{leg['Arrival_code']} ({leg['arr_city']}) {leg['Scheduled_arr_time']}"
-        )
-
-    # Fares
-    fares = conn.execute(
-        "SELECT Code, Amount, Restriction FROM FARE WHERE UPPER(Fare_Number) = ?",
-        (fn,)
-    ).fetchall()
-
-    if fares:
-        print(f"\n  Fares:")
-        for fare in fares:
-            restriction = f"  [{fare['Restriction']}]" if fare['Restriction'] else ""
-            print(f"    {fare['Code']:<8} ${fare['Amount']:>8.2f}{restriction}")
-
-    print()
-    conn.close()
-
-
-# ──────────────────────────────────────────────────────────────
-# trip(origin, destination)
-# ──────────────────────────────────────────────────────────────
-
-def trip(origin: str, destination: str) -> None:
-    """
-    Search for direct and 1-stop itineraries between two airports.
-    origin / destination may be 3-letter codes or city names.
-    Usage: trip("DFW", "SFO")  or  trip("Dallas", "San Francisco")
->>>>>>> 5beb8ff18c4b0f299bb7d38fafd1ff805fbff25a
-    """
+    """Direct and one-stop itineraries on flight_date (codes or city names)."""
     orig_codes = resolve_airport_code(origin)
     dest_codes = resolve_airport_code(destination)
 
@@ -370,70 +249,36 @@ def trip(origin: str, destination: str) -> None:
         print(f"[trip] Could not resolve destination: '{destination}'")
         return
 
-<<<<<<< HEAD
-=======
-    conn = get_connection()
->>>>>>> 5beb8ff18c4b0f299bb7d38fafd1ff805fbff25a
     found_any = False
 
     for orig in orig_codes:
         for dest in dest_codes:
             print(f"\n{'='*55}")
-<<<<<<< HEAD
-            print(f"  Trip search: {orig} → {dest}  on  {flight_date}")
+            print(f"  Trip search: {orig} -> {dest}  on  {flight_date}")
             print(f"{'='*55}")
 
             directs = fetch_direct_routes(orig, dest, flight_date)
-=======
-            print(f"  Trip search: {orig} -> {dest}")
-            print(f"{'='*55}")
-
-            # ── Direct flights ────────────────────────────────
-            directs = conn.execute(
-                """
-                SELECT fl.FLIGHT_LEG_Number  AS flight_no,
-                       fl.Leg_no,
-                       f.Airline,
-                       fl.Scheduled_dep_time,
-                       fl.Scheduled_arr_time
-                FROM   FLIGHT_LEG fl
-                JOIN   FLIGHT f ON f.FLIGHT_Number = fl.FLIGHT_LEG_Number
-                WHERE  fl.Departure_code = ?
-                  AND  fl.Arrival_code   = ?
-                ORDER  BY fl.Scheduled_dep_time
-                """,
-                (orig, dest)
-            ).fetchall()
-
->>>>>>> 5beb8ff18c4b0f299bb7d38fafd1ff805fbff25a
             if directs:
                 print(f"\n  Direct flights ({len(directs)} found):")
                 for d in directs:
                     print(
-<<<<<<< HEAD
                         f"    {d['Airline']}  {d['flight_no']}  Leg {d['Leg_no']}  "
-                        f"{d['flight_date']}  {d['Scheduled_dep_time']} → {d['Scheduled_arr_time']}"
-=======
-                        f"    {d['flight_no']} (Leg {d['Leg_no']})  "
-                        f"{d['Airline']}  "
-                        f"{d['Scheduled_dep_time']} -> {d['Scheduled_arr_time']}"
->>>>>>> 5beb8ff18c4b0f299bb7d38fafd1ff805fbff25a
+                        f"{d['flight_date']}  {d['Scheduled_dep_time']} -> {d['Scheduled_arr_time']}"
                     )
                 found_any = True
             else:
                 print("\n  No direct flights found.")
 
-<<<<<<< HEAD
             connections = fetch_one_stop_routes(orig, dest, flight_date)
             if connections:
-                print(f"\n  1-stop connections ({len(connections)} found, ≥1h layover):")
+                print(f"\n  1-stop connections ({len(connections)} found, >=1h layover):")
                 for c in connections:
                     print(
-                        f"    Leg 1: {c['airline1']}  {c['flight1']}  {c['dep1']}→{c['arr1']}  "
+                        f"    Leg 1: {c['airline1']}  {c['flight1']}  {c['dep1']}->{c['arr1']}  "
                         f"via {c['connect_code']} ({c['connect_city']})"
                     )
                     print(
-                        f"    Leg 2: {c['airline2']}  {c['flight2']}  {c['dep2']}→{c['arr2']}"
+                        f"    Leg 2: {c['airline2']}  {c['flight2']}  {c['dep2']}->{c['arr2']}"
                     )
                 found_any = True
             else:
@@ -442,52 +287,3 @@ def trip(origin: str, destination: str) -> None:
     if not found_any:
         print("\n  No itineraries found for that date.")
     print()
-=======
-            # ── 1-stop connections ────────────────────────────
-            connections = conn.execute(
-                """
-                SELECT leg1.FLIGHT_LEG_Number  AS flight1,
-                       leg1.Leg_no             AS leg1_no,
-                       f1.Airline              AS airline1,
-                       leg1.Scheduled_dep_time AS dep1,
-                       leg1.Scheduled_arr_time AS arr1,
-                       leg1.Arrival_code       AS connect_code,
-                       ca.City                 AS connect_city,
-                       leg2.FLIGHT_LEG_Number  AS flight2,
-                       leg2.Leg_no             AS leg2_no,
-                       f2.Airline              AS airline2,
-                       leg2.Scheduled_dep_time AS dep2,
-                       leg2.Scheduled_arr_time AS arr2
-                FROM   FLIGHT_LEG leg1
-                JOIN   FLIGHT f1  ON f1.FLIGHT_Number = leg1.FLIGHT_LEG_Number
-                JOIN   FLIGHT_LEG leg2
-                         ON  leg2.Departure_code = leg1.Arrival_code
-                         AND leg2.Arrival_code   = ?
-                         AND leg2.Scheduled_dep_time > leg1.Scheduled_arr_time
-                JOIN   FLIGHT f2  ON f2.FLIGHT_Number = leg2.FLIGHT_LEG_Number
-                JOIN   AIRPORT ca ON ca.Airport_code  = leg1.Arrival_code
-                WHERE  leg1.Departure_code = ?
-                  AND  leg1.Arrival_code  != ?
-                ORDER  BY leg1.Scheduled_dep_time, leg2.Scheduled_dep_time
-                """,
-                (dest, orig, dest)
-            ).fetchall()
-
-            if connections:
-                print(f"\n  1-stop connections ({len(connections)} found):")
-                for c in connections:
-                    print(
-                        f"    {c['flight1']} (Leg {c['leg1_no']}) {c['dep1']}->{c['arr1']}"
-                        f"  connect {c['connect_code']} ({c['connect_city']})"
-                        f"  {c['flight2']} (Leg {c['leg2_no']}) {c['dep2']}->{c['arr2']}"
-                    )
-                found_any = True
-            else:
-                print("  No 1-stop connections found.")
-
-    if not found_any:
-        print("\n  No itineraries found between those airports.")
-
-    print()
-    conn.close()
->>>>>>> 5beb8ff18c4b0f299bb7d38fafd1ff805fbff25a

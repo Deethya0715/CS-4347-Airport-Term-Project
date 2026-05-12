@@ -1,5 +1,5 @@
 """
-csv_loader.py — Load professor-provided milestone CSVs into SQLite.
+csv_loader.py - Load professor-provided milestone CSVs into SQLite.
 
 Column mapping / quirks:
   AIRPORT.csv          → (Airport_code, City, State, Name)  [CSV order differs]

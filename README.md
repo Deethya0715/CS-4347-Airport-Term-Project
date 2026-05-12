@@ -1,4 +1,4 @@
-# CS-4347 Airport Management System — Milestone 2
+# CS-4347 Airport Management System - Milestone 2
 
 Milestone 2 is a **Python command-line interface** backed by **SQLite** for the Airport Management System. It supports flight search, trip planning (direct and one-stop), seat availability, passenger itinerary lookup, and an **aircraft utilization** report for a date range.
 
@@ -14,7 +14,7 @@ The application uses only the **standard library**. Optional: `reportlab` is req
 | Path | Role |
 |------|------|
 | `cli.py` | Entry point: REPL, `--init`, `--cmd`, etc. |
-| `sql/schema.sql` | DDL — creates all tables |
+| `sql/schema.sql` | DDL - creates all tables |
 | `sql/seed.sql` | Small sample dataset (SQL) |
 | `data/*.csv` | Professor-style CSV bundle (loaded when `./data/FLIGHT.csv` exists on `--init`) |
 | `modules/db.py` | Connection helper; `init_db()` |

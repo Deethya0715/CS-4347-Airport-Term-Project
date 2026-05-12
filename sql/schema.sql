@@ -1,7 +1,4 @@
--- ============================================================
--- CS-4347 Airport Management System
--- schema.sql  -- Run this first to initialize the database
--- ============================================================
+-- CS-4347 Airport Management System - schema.sql (run first to initialize)
 
 -- NOTE: This project uses SQLite. Oracle syntax (VARCHAR2, TIMESTAMP)
 --       has been adapted to SQLite-compatible types.
@@ -20,9 +17,7 @@ DROP TABLE IF EXISTS AIRPLANE;
 DROP TABLE IF EXISTS AIRPLANE_TYPE;
 DROP TABLE IF EXISTS AIRPORT;
 
--- ============================================================
 -- Core lookup tables
--- ============================================================
 
 CREATE TABLE IF NOT EXISTS AIRPORT (
     Airport_code TEXT PRIMARY KEY,
@@ -52,9 +47,7 @@ CREATE TABLE IF NOT EXISTS CAN_LAND (
     FOREIGN KEY (Type_name)    REFERENCES AIRPLANE_TYPE(Type_name) ON DELETE CASCADE
 );
 
--- ============================================================
 -- Flight structure
--- ============================================================
 
 CREATE TABLE IF NOT EXISTS FLIGHT (
     FLIGHT_Number TEXT PRIMARY KEY,
@@ -84,9 +77,7 @@ CREATE TABLE IF NOT EXISTS FARE (
     FOREIGN KEY (Fare_Number) REFERENCES FLIGHT(FLIGHT_Number) ON DELETE CASCADE
 );
 
--- ============================================================
--- Instances (scheduled occurrences of each leg)
--- ============================================================
+-- Leg instances (scheduled occurrences)
 
 CREATE TABLE IF NOT EXISTS LEG_INSTANCE (
     LEG_INSTANCE_Number    TEXT NOT NULL,
@@ -100,9 +91,7 @@ CREATE TABLE IF NOT EXISTS LEG_INSTANCE (
     FOREIGN KEY (Airplane_id) REFERENCES AIRPLANE(Airplane_id)
 );
 
--- ============================================================
 -- Seating
--- ============================================================
 
 CREATE TABLE IF NOT EXISTS PHYSICAL_PLANE_SEAT (
     Airplane_id TEXT NOT NULL,
@@ -119,10 +108,7 @@ CREATE TABLE IF NOT EXISTS SEAT (
     Seat_Date     TEXT NOT NULL,
     Customer_name TEXT NOT NULL,
     Cphone        TEXT,
-<<<<<<< HEAD
     Customer_id   TEXT,
-=======
->>>>>>> 5beb8ff18c4b0f299bb7d38fafd1ff805fbff25a
     PRIMARY KEY (Seat_no, Flight_Number, Leg_no, Seat_Date),
     FOREIGN KEY (Flight_Number, Leg_no, Seat_Date)
         REFERENCES LEG_INSTANCE(LEG_INSTANCE_Number, Leg_no, LEG_INSTANCE_Date)
