@@ -1,5 +1,6 @@
 """
 booking.py — Passenger & Booking Queries Module
+<<<<<<< HEAD
 CS-4347 Airport Management System (Milestone 3)
 
 Implements:
@@ -19,6 +20,46 @@ def fetch_seat_availability(flight_number: str, date: str) -> list[dict[str, Any
     """Return one row per leg instance with capacity / booked / remaining."""
     conn = get_connection()
     fn = flight_number.strip().upper()
+=======
+CS-4347 Airport Management System
+
+Implements:
+  seat_availability(flight_number, date)
+    → Counts seats on the airplane type vs confirmed reservations.
+
+  passenger_itinerary(customer)
+    → Returns all flight legs booked under a customer name or ID.
+"""
+
+from modules.db import get_connection
+
+
+# ──────────────────────────────────────────────────────────────
+# Seat Availability Check
+# ──────────────────────────────────────────────────────────────
+
+def seat_availability(flight_number: str, date: str) -> None:
+    """
+    For a specific flight instance (flight_number + date), show:
+      - airplane assigned
+      - total physical seats on the airplane
+      - confirmed reservations
+      - remaining capacity
+
+    Parameters
+    ----------
+    flight_number : str  — e.g. "AA3478"
+    date          : str  — "YYYY-MM-DD"
+
+    Example
+    -------
+    seat_availability("AA3478", "2025-08-01")
+    """
+    conn = get_connection()
+    fn   = flight_number.strip().upper()
+
+    # Fetch all legs of this flight on this date
+>>>>>>> 5beb8ff18c4b0f299bb7d38fafd1ff805fbff25a
     legs = conn.execute(
         """
         SELECT  li.Leg_no,
@@ -39,10 +80,27 @@ def fetch_seat_availability(flight_number: str, date: str) -> list[dict[str, Any
           AND   li.LEG_INSTANCE_Date          = ?
         ORDER   BY li.Leg_no
         """,
+<<<<<<< HEAD
         (fn, date),
     ).fetchall()
     result: list[dict[str, Any]] = []
     for leg in legs:
+=======
+        (fn, date)
+    ).fetchall()
+
+    if not legs:
+        print(f"\n[seat_availability] No instance found for {fn} on {date}")
+        conn.close()
+        return
+
+    print(f"\n{'='*55}")
+    print(f"  Seat Availability - Flight {fn}  on  {date}")
+    print(f"{'='*55}")
+
+    for leg in legs:
+        # Count confirmed reservations for this leg instance
+>>>>>>> 5beb8ff18c4b0f299bb7d38fafd1ff805fbff25a
         booked = conn.execute(
             """
             SELECT COUNT(*) AS cnt
@@ -51,6 +109,7 @@ def fetch_seat_availability(flight_number: str, date: str) -> list[dict[str, Any
               AND  Leg_no    = ?
               AND  Seat_Date = ?
             """,
+<<<<<<< HEAD
             (fn, leg["Leg_no"], date),
         ).fetchone()["cnt"]
         cap = leg["Total_no_of_seats"]
@@ -184,6 +243,50 @@ def fetch_passenger_itinerary(customer: str) -> list[dict[str, Any]]:
         """
         SELECT  s.Customer_name,
                 s.Customer_id,
+=======
+            (fn, leg["Leg_no"], date)
+        ).fetchone()["cnt"]
+
+        capacity  = leg["Total_no_of_seats"]
+        remaining = capacity - booked
+
+        print(f"\n  Leg {leg['Leg_no']}: "
+              f"{leg['Departure_code']} {leg['Scheduled_dep_time']} -> "
+              f"{leg['Arrival_code']} {leg['Scheduled_arr_time']}")
+        print(f"    Airplane : {leg['Airplane_id']} ({leg['Type_name']})")
+        print(f"    Capacity : {capacity}")
+        print(f"    Booked   : {booked}")
+        print(f"    Available: {remaining}")
+
+    print()
+    conn.close()
+
+
+# ──────────────────────────────────────────────────────────────
+# Passenger Itinerary Retrieval
+# ──────────────────────────────────────────────────────────────
+
+def passenger_itinerary(customer: str) -> None:
+    """
+    Given a customer name (or partial name), return all flight legs
+    they are booked on, including connection airports, scheduled times,
+    and seat assignments.
+
+    Parameters
+    ----------
+    customer : str  — full or partial name, case-insensitive
+
+    Example
+    -------
+    passenger_itinerary("Bob Jones")
+    passenger_itinerary("bob")
+    """
+    conn = get_connection()
+
+    rows = conn.execute(
+        """
+        SELECT  s.Customer_name,
+>>>>>>> 5beb8ff18c4b0f299bb7d38fafd1ff805fbff25a
                 s.Cphone,
                 s.Flight_Number,
                 s.Leg_no,
@@ -206,6 +309,7 @@ def fetch_passenger_itinerary(customer: str) -> list[dict[str, Any]]:
                 ON  UPPER(li.LEG_INSTANCE_Number) = UPPER(s.Flight_Number)
                 AND li.Leg_no                     = s.Leg_no
                 AND li.LEG_INSTANCE_Date          = s.Seat_Date
+<<<<<<< HEAD
         WHERE   UPPER(IFNULL(s.Customer_id,'')) = UPPER(?)
            OR   UPPER(s.Customer_name) LIKE UPPER(?)
         ORDER   BY s.Customer_name, s.Seat_Date, s.Flight_Number, s.Leg_no
@@ -224,22 +328,55 @@ def passenger_itinerary(customer: str) -> None:
     print(f"\n{'='*65}")
     print(f"  Passenger Itinerary — search: '{customer}'")
     print(f"{'='*65}")
+=======
+        WHERE   UPPER(s.Customer_name) LIKE UPPER(?)
+        ORDER   BY s.Customer_name, s.Seat_Date, s.Flight_Number, s.Leg_no
+        """,
+        (f"%{customer}%",)
+    ).fetchall()
+
+    if not rows:
+        print(f"\n[passenger_itinerary] No bookings found for '{customer}'")
+        conn.close()
+        return
+
+    print(f"\n{'='*65}")
+    print(f"  Passenger Itinerary - search: '{customer}'")
+    print(f"{'='*65}")
+
+>>>>>>> 5beb8ff18c4b0f299bb7d38fafd1ff805fbff25a
     current_pax = None
     for r in rows:
         if r["Customer_name"] != current_pax:
             current_pax = r["Customer_name"]
+<<<<<<< HEAD
             cid = r["Customer_id"] or "N/A"
             print(f"\n  Passenger: {current_pax}   ID: {cid}   Phone: {r['Cphone'] or 'N/A'}")
             print(f"  {'-'*60}")
+=======
+            print(f"\n  Passenger: {current_pax}   Phone: {r['Cphone'] or 'N/A'}")
+            print(f"  {'-'*60}")
+
+>>>>>>> 5beb8ff18c4b0f299bb7d38fafd1ff805fbff25a
         print(
             f"  {r['Seat_Date']}  Flight {r['Flight_Number']} Leg {r['Leg_no']}"
             f"  Seat {r['Seat_no']}"
         )
         print(
             f"           {r['Departure_code']} ({r['dep_city']}) "
+<<<<<<< HEAD
             f"{r['Scheduled_dep_time']}  →  "
+=======
+            f"{r['Scheduled_dep_time']}  ->  "
+>>>>>>> 5beb8ff18c4b0f299bb7d38fafd1ff805fbff25a
             f"{r['Arrival_code']} ({r['arr_city']}) "
             f"{r['Scheduled_arr_time']}"
         )
         print(f"           Aircraft: {r['Airplane_id']}")
+<<<<<<< HEAD
     print()
+=======
+
+    print()
+    conn.close()
+>>>>>>> 5beb8ff18c4b0f299bb7d38fafd1ff805fbff25a

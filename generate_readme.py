@@ -56,6 +56,19 @@ story = [
       "implemented in Python 3."),
     sp(),
 
+<<<<<<< HEAD
+=======
+    H("3) Infrastructure Reports", level=2),
+    P("<b>Aircraft Utilization Report.</b> For a given time period, the system lists "
+      "every airplane (by <i>registration number</i> and <i>aircraft type</i>) along "
+      "with the total number of flights it was assigned to. This helps maintenance "
+      "planners schedule inspections based on usage cycles. In the REPL, run "
+      "<font name=\"Courier\">report(&lt;start_date&gt;, &lt;end_date&gt;)</font> "
+      "with dates in YYYY-MM-DD format; implementation: <font name=\"Courier\">"
+      "modules/reports.py</font> (<i>aircraft_utilization_report</i>)."),
+    sp(),
+
+>>>>>>> 5beb8ff18c4b0f299bb7d38fafd1ff805fbff25a
     # Requirements
     H("Requirements", level=2),
     P("<b>Language:</b> Python 3.10 or higher"),
@@ -113,7 +126,11 @@ airport_project/
             ['trip(<origin>, <dest>)',        "Direct + 1-stop itineraries between airports"],
             ['availability(<flight>, <date>)',"Seat capacity vs. confirmed bookings"],
             ['itinerary(<name>)',             "All bookings for a passenger (partial name OK)"],
+<<<<<<< HEAD
             ['report(<start>, <end>)',        "Aircraft utilization report for a date range"],
+=======
+            ['report(<start>, <end>)',        "(3) Aircraft utilization: reg., type, flight count in range"],
+>>>>>>> 5beb8ff18c4b0f299bb7d38fafd1ff805fbff25a
             ['help',                          "Print the command reference"],
             ['exit / quit',                  "Exit the REPL"],
         ],

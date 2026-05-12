@@ -8,6 +8,18 @@
 
 PRAGMA foreign_keys = ON;
 
+-- Clean slate on each init (SQLite has no DROP SCHEMA)
+DROP TABLE IF EXISTS SEAT;
+DROP TABLE IF EXISTS PHYSICAL_PLANE_SEAT;
+DROP TABLE IF EXISTS LEG_INSTANCE;
+DROP TABLE IF EXISTS CAN_LAND;
+DROP TABLE IF EXISTS FARE;
+DROP TABLE IF EXISTS FLIGHT_LEG;
+DROP TABLE IF EXISTS FLIGHT;
+DROP TABLE IF EXISTS AIRPLANE;
+DROP TABLE IF EXISTS AIRPLANE_TYPE;
+DROP TABLE IF EXISTS AIRPORT;
+
 -- ============================================================
 -- Core lookup tables
 -- ============================================================
@@ -107,7 +119,10 @@ CREATE TABLE IF NOT EXISTS SEAT (
     Seat_Date     TEXT NOT NULL,
     Customer_name TEXT NOT NULL,
     Cphone        TEXT,
+<<<<<<< HEAD
     Customer_id   TEXT,
+=======
+>>>>>>> 5beb8ff18c4b0f299bb7d38fafd1ff805fbff25a
     PRIMARY KEY (Seat_no, Flight_Number, Leg_no, Seat_Date),
     FOREIGN KEY (Flight_Number, Leg_no, Seat_Date)
         REFERENCES LEG_INSTANCE(LEG_INSTANCE_Number, Leg_no, LEG_INSTANCE_Date)
